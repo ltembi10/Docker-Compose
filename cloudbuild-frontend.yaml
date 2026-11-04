@@ -1,0 +1,36 @@
+
+steps:
+  # Build frontend Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'VITE_API_URL=https://recipe-backend-856415311400.us-central1.run.app'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/recipe-images/recipe-frontend'
+      - './frontend'
+
+  # Push image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/recipe-images/recipe-frontend'
+
+  # Deploy frontend to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'recipe-frontend'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/recipe-images/recipe-frontend'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '80'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
